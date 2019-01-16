@@ -1,5 +1,19 @@
 
+先看看web.xml怎样写
+```
+<context-param>
+    <param-name>shiroEnvironmentClass</param-name>
+    <param-value>org.apache.shiro.web.env.IniWebEnvironment</param-value>
+  </context-param>
+  <context-param>
+    <param-name>shiroConfigLocation</param-name>
+    <param-value>classpath:shiro.ini</param-value>
+  </context-param>
 
+  <listener>
+    <listener-class>org.apache.shiro.web.env.EnvironmentLoaderListener</listener-class>
+  </listener>
+```
 
 
 

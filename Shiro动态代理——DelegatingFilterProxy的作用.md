@@ -1,8 +1,32 @@
 
-####来看看shiro与spring整合时要怎么写web.xml
 
+
+
+
+这里filter-name中的shiroFilter配置在spring-shiro-web.xml中，
+DelagatingFilterProxy持有web上下文的引用，所以它能找到shiroFilter,
+和配置别的fitler不同，filter-class中的DelegatingFilterProxy不是shiroFilter的类,
+而是它代理了shiroFilter这个过滤器，而这个过滤器配置在spring-shiro-web.xml中,
+
+那用DelegatingFilterProxy的好处是什么呢？
+参考：spring filter的targetFilterLifecycle作用 https://blog.csdn.net/u013378306/article/details/50801001
+
+奥秒在targetFilterLifecycle
+
+按filter-class对应filter-name实现类的方式配置的话，filter是被加载到web容器中（比例tomcat），
+而spring配置中的beans是spring容器管理的，那filter想要引用spring配置中的bean就麻烦了，
+作法是让spring容器来管理filter的生命周期，这样filter想引用其它的spring bean就容易了
+targetFilterLifecycle设置为true上面就能实现这一点
+
+注意：
+  shiroFilter对应的类是org.apache.shiro.spring.web.ShiroFilterFactoryBean,
+  而不是org.apache.shiro.web.servlet.ShiroFilter
+在shiro-web模块中，用过org.apache.shiro.web.servlet.ShiroFilter对应filter的实现，它是被加载web容器中的
+而org.apache.shiro.spring.web.ShiroFilterFactoryBean是实现spring bean接口的，而它也不是单纯的过滤器
+而持有securityManager、shiro过滤器列表、loginUrl等对象，它更像是一个shiro.ini配置入口
+
+web.xml
 ```
-xml
 <?xml version="1.0" encoding="UTF-8" ?>
 <web-app xmlns="http://java.sun.com/xml/ns/javaee"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -94,14 +118,34 @@ xml
 </web-app>
 ```
 
+spring-shiro-web.xml
+```
+<!--
+        Shiro的Web过滤器，它非指在shiro中定义的具体过滤器，还是把shiro当成整个应用中的一个过滤层来看，
+        ShiroFilterFactoryBean就相当是shiro.ini的配置入口，
+        DelegatingFilterProxy代理了ShiroFilterFactoryBean，这是shiro与spring整合的关键点
+     -->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager"/>
+        <property name="loginUrl" value="/login.jsp"/>
+        <property name="unauthorizedUrl" value="/unauthorized.jsp"/>
+        <property name="filters">
+            <util:map>
+                <entry key="authc" value-ref="formAuthenticationFilter"/>
+                <entry key="ssl" value-ref="sslFilter"/>
+            </util:map>
+        </property>
+        <property name="filterChainDefinitions">
+            <value>
+                /index.jsp = anon
+                /unauthorized.jsp = anon
+                /login.jsp = ssl,authc
+                #/login.jsp = authc
+                /logout = logout
+                /** = user
+            </value>
+        </property>
+    </bean>
+```
 
 
-
-
-//第十二章 与Spring集成——《跟我学Shiro》
-http://jinnianshilongnian.iteye.com/blog/2029717
-
-//第十四章 SSL——《跟我学Shiro》
-http://jinnianshilongnian.iteye.com/blog/2036420
-
-本模块除也与spring整合，也有ssl的内容（ssl部分还有问题）

@@ -4,9 +4,9 @@
 - filter的init-param来整合
 - servlet的init-param来整合
 
-####以下为例子
+**以下为例子**
 
-servlet整合spring
+**servlet整合spring**
 ```
 <context-param>
     <param-name>contextConfigLocation</param-name>
@@ -19,7 +19,7 @@ servlet整合spring
 ```
 
 
-servlet整合shiro
+**servlet整合shiro**
 ```
 <context-param>
     <param-name>shiroEnvironmentClass</param-name>
@@ -36,7 +36,8 @@ servlet整合shiro
 ```
 
 
-jersey整合spring
+**jersey整合spring**
+**因为org.glassfish.jersey.servlet.ServletContainer继承了HttpServlet类，也实现Filter接口，所以它可视为servlet，也可视为filter**
 ```
 <filter>
         <filter-name>jerseyServletContainer</filter-name>
@@ -57,7 +58,7 @@ jersey整合spring
 ```
 
 
-servlet整合springMVC
+**servlet整合springMVC**
 ```
 <servlet>
     <servlet-name>dispatcherServlet</servlet-name>
